@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace cipher.Controllers
 {
        [Route("api/cipher")]
-       public class CipherController : Controller
+       [ApiController]
+       public class CipherController : ControllerBase
        {
               private readonly ILogger<CipherController> _logger;
               private readonly IOptions<CipherSettings> _cipherSettings;
@@ -18,15 +15,19 @@ namespace cipher.Controllers
                      _cipherSettings = cipherSettings;
                      _logger = logger;
               }
-              public IActionResult GetCipheredString(string value)
-              {
 
+              [HttpGet("encrypt")]
+              public async Task<IActionResult> EncryptString(string value)
+              {
+                     var result = await CipherManager.EncryptStringAsync(value, _cipherSettings.Value.Key);
+                     return Ok(result);
               }
 
-              [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-              public IActionResult Error()
+              [HttpGet("decrypt")]
+              public async Task<IActionResult> DecryptString(string value)
               {
-                     return View("Error!");
+                     var result = await CipherManager.DecryptAsync(value, _cipherSettings.Value.Key);
+                     return Ok(result);
               }
        }
 }
