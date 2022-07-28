@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Unicode;
-using System.Threading.Tasks;
 
 namespace cipher
 {
@@ -21,7 +16,7 @@ namespace cipher
               {
                      byte[] iv = new byte[ivLength];
                      byte[] result;
-                     
+
                      using (Aes aesAlg = Aes.Create())
                      {
                             aesAlg.Key = Encoding.UTF8.GetBytes(key);
@@ -42,9 +37,34 @@ namespace cipher
                      return Convert.ToBase64String(result);
               }
 
-              public static async Task<string> DecryptAsync(byte[] encryptedData, string key, int ivLength = 16)
+              /// <summary>
+              /// Decrypts the given text using the specified key
+              /// </summary>
+              /// <param name="encryptedData"></param>
+              /// <param name="key"></param>
+              /// <param name="ivLength"></param>
+              /// <returns></returns>
+              public static async Task<string> DecryptAsync(string encryptedData, string key, int ivLength = 16)
               {
-                    
+                     byte[] iv = new byte[ivLength];
+                     byte[] buffer = Convert.FromBase64String(encryptedData);
+
+                     using (Aes aesAlg = Aes.Create())
+                     {
+                            aesAlg.Key = Encoding.UTF8.GetBytes(key);
+                            aesAlg.IV = iv;
+                            ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+                            using (MemoryStream memoryStream = new MemoryStream(buffer))
+                            {
+                                   using (CryptoStream cryptoScream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                                   {
+                                          using (StreamReader streamReader = new StreamReader(cryptoScream))
+                                          {
+                                                 return await streamReader.ReadToEndAsync();
+                                          }
+                                   }
+                            }
+                     }
               }
        }
 }
